@@ -1,0 +1,38 @@
+select * FROM ( select a.* from "IDENTITYIQ"."SPT_LINK" a
+inner join SPT_APPLICATION b
+on a.application = b.id
+where b.id = 'c6126a6a934415e2819395f7f8961dbb') LNK
+   
+inner join      
+    ( SELECT T.ID, x.IsActive, 
+FROM "IDENTITYIQ"."SPT_LINK" t,
+     XMLTABLE(
+       '/Attributes/Map/entry[@key="IsActive"]/value/Boolean'
+       PASSING XMLTYPE(t.ATTRIBUTES)
+       COLUMNS
+        IsActive VARCHAR2(5) PATH '.'
+     ) x) st
+     on LNK.id = st.id
+     where NVL(st.isactive, 'false') <> 'true'
+     
+   ----------------------------  
+     
+     select LNK.id, LNK.native_identity, LNK.display_name, LNK.identity_id, LNK.iiq_disabled, IsActive, IsFrozen__c, EffectiveStatus, DispName  FROM ( select a.* from "IDENTITYIQ"."SPT_LINK" a
+inner join SPT_APPLICATION b
+on a.application = b.id
+where b.id = 'c6126a6a934415e2819395f7f8961dbb') LNK
+   
+inner join      
+    ( SELECT T.ID, x.IsActive, x.IsFrozen__c, x.EffectiveStatus, x.DispName
+FROM "IDENTITYIQ"."SPT_LINK" t
+   CROSS JOIN XMLTABLE(
+       '/Attributes/Map'
+       PASSING XMLTYPE(t.ATTRIBUTES)
+       COLUMNS
+        IsActive VARCHAR2(5)  PATH 'entry[@key="IsActive"]/value/Boolean',
+        IsFrozen__c   VARCHAR2(5)  PATH 'entry[@key="IsFrozen__c"]/value/Boolean',
+        EffectiveStatus   VARCHAR2(20)  PATH 'entry[@key="EffectiveStatus"]/@value',
+        DispName   VARCHAR2(20)  PATH 'entry[@key="Name"]/@value'
+     ) x) st
+     on LNK.id = st.id
+     where NVL(st.isactive, 'false') <> 'true'
